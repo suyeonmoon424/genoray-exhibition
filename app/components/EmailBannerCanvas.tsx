@@ -1,6 +1,6 @@
 'use client';
 
-import { forwardRef } from 'react';
+import { forwardRef, useState, useEffect, useRef } from 'react';
 import { ExhibitionData, VENUE_BG } from '@/app/lib/presets';
 
 type Props = {
@@ -21,6 +21,36 @@ const EmailBannerCanvas = forwardRef<HTMLDivElement, Props>(function EmailBanner
   const rightW = r(200);
   const leftW  = Math.round(width * 0.35);
   const midW   = width - leftW - rightW;
+
+  // Right section: scale name/year font based on exhibition name length
+  const nameLen = (data.exhibitionName || '').length;
+  const rightNameSize = nameLen >= 13 ? r(20) : nameLen >= 7 ? r(24) : r(28);
+
+  // Auto-fit font sizes — start at max, shrink 1px/pass until scrollWidth fits
+  const maxVisit = r(15);  const minVisit = r(11);
+  const maxBooth = r(22);  const minBooth = r(13);
+  const [visitSize, setVisitSize] = useState(maxVisit);
+  const [boothSize, setBoothSize] = useState(maxBooth);
+  const visitRef  = useRef<HTMLDivElement>(null);
+  const boothRef  = useRef<HTMLDivElement>(null);
+
+  // Reset to max whenever content or scale changes
+  useEffect(() => { setVisitSize(maxVisit); }, [data.exhibitionName, data.year, maxVisit]);
+  useEffect(() => { setBoothSize(maxBooth); }, [data.booth, maxBooth]);
+
+  // Shrink visit line one px at a time until it fits
+  useEffect(() => {
+    const el = visitRef.current;
+    if (el && el.scrollWidth > el.clientWidth && visitSize > minVisit)
+      setVisitSize(v => Math.max(v - 1, minVisit));
+  }, [visitSize, data.exhibitionName, data.year, minVisit]);
+
+  // Shrink booth line one px at a time until it fits
+  useEffect(() => {
+    const el = boothRef.current;
+    if (el && el.scrollWidth > el.clientWidth && boothSize > minBooth)
+      setBoothSize(b => Math.max(b - 1, minBooth));
+  }, [boothSize, data.booth, minBooth]);
 
   return (
     <div
@@ -44,7 +74,7 @@ const EmailBannerCanvas = forwardRef<HTMLDivElement, Props>(function EmailBanner
           display: 'flex',
           flexDirection: 'column',
           justifyContent: 'space-between',
-          padding: `${r(14)}px ${r(20)}px`,
+          padding: `${r(14)}px ${r(16)}px`,
           boxSizing: 'border-box',
           flexShrink: 0,
         }}
@@ -72,11 +102,12 @@ const EmailBannerCanvas = forwardRef<HTMLDivElement, Props>(function EmailBanner
 
         {/* 3. "Visit us at..." + 4. "Booth No." — pinned to bottom */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: `${r(6)}px` }}>
-          <div style={{ lineHeight: 1.3 }}>
+          {/* "Visit us at [name] [year]" — auto-shrinks to fit */}
+          <div ref={visitRef} style={{ lineHeight: 1.3, whiteSpace: 'nowrap', overflow: 'hidden' }}>
             <span
               style={{
                 fontFamily: "'Pretendard', Arial, sans-serif",
-                fontSize: `${r(16)}px`,
+                fontSize: `${visitSize}px`,
                 fontWeight: 400,
                 color: 'rgba(255,255,255,0.70)',
               }}
@@ -86,7 +117,7 @@ const EmailBannerCanvas = forwardRef<HTMLDivElement, Props>(function EmailBanner
             <span
               style={{
                 fontFamily: "'GmarketSans', 'Arial Black', Arial, sans-serif",
-                fontSize: `${r(18)}px`,
+                fontSize: `${visitSize}px`,
                 fontWeight: 700,
                 color: '#ffffff',
               }}
@@ -95,11 +126,12 @@ const EmailBannerCanvas = forwardRef<HTMLDivElement, Props>(function EmailBanner
             </span>
           </div>
 
-          <div>
+          {/* "Booth No. [number]" — auto-shrinks to fit */}
+          <div ref={boothRef} style={{ whiteSpace: 'nowrap', overflow: 'hidden' }}>
             <span
               style={{
                 fontFamily: "'Pretendard', Arial, sans-serif",
-                fontSize: `${r(16)}px`,
+                fontSize: `${Math.round(boothSize * 0.65)}px`,
                 fontWeight: 400,
                 color: 'rgba(255,255,255,0.55)',
               }}
@@ -109,7 +141,7 @@ const EmailBannerCanvas = forwardRef<HTMLDivElement, Props>(function EmailBanner
             <span
               style={{
                 fontFamily: "'GmarketSans', 'Arial Black', Arial, sans-serif",
-                fontSize: `${r(24)}px`,
+                fontSize: `${boothSize}px`,
                 fontWeight: 700,
                 color: data.color,
               }}
@@ -146,15 +178,14 @@ const EmailBannerCanvas = forwardRef<HTMLDivElement, Props>(function EmailBanner
             pointerEvents: 'none',
           }}
         />
-        {/* Feather left edge into dark, feather right edge into white */}
+        {/* Left-to-right fade: dark at photo's left edge, transparent at right */}
         <div
           style={{
             position: 'absolute',
             inset: 0,
             background:
               'linear-gradient(to right,' +
-              '  rgba(13,13,13,0.92) 0%,' +
-              '  rgba(0,0,0,0.20) 50%,' +
+              '  rgba(0,0,0,0.90) 0%,' +
               '  rgba(0,0,0,0.00) 100%)',
             pointerEvents: 'none',
           }}
@@ -184,7 +215,7 @@ const EmailBannerCanvas = forwardRef<HTMLDivElement, Props>(function EmailBanner
         <div
           style={{
             fontFamily: "'GmarketSans', 'Arial Black', Arial, sans-serif",
-            fontSize: `${r(28)}px`,
+            fontSize: `${rightNameSize}px`,
             fontWeight: 700,
             color: data.color,
             lineHeight: 1.0,
@@ -200,7 +231,7 @@ const EmailBannerCanvas = forwardRef<HTMLDivElement, Props>(function EmailBanner
           <div
             style={{
               fontFamily: "'GmarketSans', 'Arial Black', Arial, sans-serif",
-              fontSize: `${r(28)}px`,
+              fontSize: `${rightNameSize}px`,
               fontWeight: 700,
               color: data.color,
               lineHeight: 1.0,
