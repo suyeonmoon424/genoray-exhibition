@@ -8,12 +8,13 @@ type Props = {
   width: number;
   height: number;
   customBgUrl?: string;
+  bgPositionX?: number;
   bgPositionY?: number;
   logoKey?: string;
 };
 
 const EmailBannerCanvas = forwardRef<HTMLDivElement, Props>(function EmailBannerCanvas(
-  { data, width, height, customBgUrl, bgPositionY = 50, logoKey = 'GENORAY' },
+  { data, width, height, customBgUrl, bgPositionX = 50, bgPositionY = 50, logoKey = 'GENORAY' },
   ref
 ) {
   const s = width / 700;
@@ -84,7 +85,7 @@ const EmailBannerCanvas = forwardRef<HTMLDivElement, Props>(function EmailBanner
         }}
       >
         {/* 1. Logo + 2. Divider — pinned to top */}
-        <div>
+        <div style={{ display: 'inline-block' }}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={getEmailLogoSrc(logoKey)}
@@ -99,7 +100,7 @@ const EmailBannerCanvas = forwardRef<HTMLDivElement, Props>(function EmailBanner
             }}
           />
           <div style={{
-            width: `${r(120)}px`,
+            width: '100%',
             height: '1px',
             backgroundColor: 'rgba(255,255,255,0.40)',
             marginTop: `${r(8)}px`,
@@ -179,7 +180,7 @@ const EmailBannerCanvas = forwardRef<HTMLDivElement, Props>(function EmailBanner
             width: '100%',
             height: '100%',
             objectFit: 'cover',
-            objectPosition: `center ${bgPositionY}%`,
+            objectPosition: `${bgPositionX}% ${bgPositionY}%`,
             display: 'block',
             pointerEvents: 'none',
           }}

@@ -30,6 +30,7 @@ export default function ExhibitionApp() {
   const [customBgName, setCustomBgName] = useState('');
   const [bgX, setBgX] = useState(50);
   const [bgY, setBgY] = useState(50);
+  const [emailBgX, setEmailBgX] = useState(50);
   const [emailBgY, setEmailBgY] = useState(50);
   const [imagePosOpen, setImagePosOpen] = useState(false);
   const [logoKey, setLogoKey] = useState('GENORAY');
@@ -297,7 +298,10 @@ export default function ExhibitionApp() {
                       {showBgXY && (
                         <p className="text-xs text-gray-500 mb-2">Email Banner</p>
                       )}
-                      <SliderRow label="Vertical" value={emailBgY} onChange={setEmailBgY} />
+                      <div className="space-y-2">
+                        <SliderRow label="Horizontal" value={emailBgX} onChange={setEmailBgX} />
+                        <SliderRow label="Vertical"   value={emailBgY} onChange={setEmailBgY} />
+                      </div>
                     </div>
                   )}
                 </div>
@@ -512,6 +516,7 @@ export default function ExhibitionApp() {
                   scale={emailScale}
                   isEmail
                   customBgUrl={bgUrl}
+                  emailBgX={emailBgX}
                   emailBgY={emailBgY}
                   logoKey={logoKey}
                 />
@@ -562,7 +567,8 @@ export default function ExhibitionApp() {
                     scale={emailScale}
                     isEmail
                     customBgUrl={bgUrl}
-                    emailBgY={emailBgY}
+                    emailBgX={emailBgX}
+                  emailBgY={emailBgY}
                     logoKey={logoKey}
                   />
                 </PreviewBlock>
@@ -585,7 +591,7 @@ export default function ExhibitionApp() {
       >
         <ExhibitionCanvas ref={instaRef} data={data} width={INSTA.w} height={INSTA.h} customBgUrl={bgUrl} bgPositionX={bgX} bgPositionY={bgY} logoKey={logoKey} />
         <ExhibitionCanvas ref={popupRef} data={data} width={POPUP.w} height={POPUP.h} customBgUrl={bgUrl} bgPositionX={bgX} bgPositionY={bgY} logoKey={logoKey} />
-        <EmailBannerCanvas ref={emailRef} data={data} width={EMAIL.w} height={EMAIL.h} customBgUrl={bgUrl} bgPositionY={emailBgY} logoKey={logoKey} />
+        <EmailBannerCanvas ref={emailRef} data={data} width={EMAIL.w} height={EMAIL.h} customBgUrl={bgUrl} bgPositionX={emailBgX} bgPositionY={emailBgY} logoKey={logoKey} />
       </div>
     </div>
   );
@@ -649,6 +655,7 @@ function ScaledPreview({
   customBgUrl,
   bgX = 50,
   bgY = 50,
+  emailBgX = 50,
   emailBgY = 50,
   logoKey = 'GENORAY',
 }: {
@@ -662,6 +669,7 @@ function ScaledPreview({
   customBgUrl?: string;
   bgX?: number;
   bgY?: number;
+  emailBgX?: number;
   emailBgY?: number;
   logoKey?: string;
 }) {
@@ -688,7 +696,7 @@ function ScaledPreview({
         }}
       >
         {isEmail
-          ? <EmailBannerCanvas data={data} width={canvasW} height={canvasH} customBgUrl={customBgUrl} bgPositionY={emailBgY} logoKey={logoKey} />
+          ? <EmailBannerCanvas data={data} width={canvasW} height={canvasH} customBgUrl={customBgUrl} bgPositionX={emailBgX} bgPositionY={emailBgY} logoKey={logoKey} />
           : <ExhibitionCanvas  data={data} width={canvasW} height={canvasH} customBgUrl={customBgUrl} bgPositionX={bgX} bgPositionY={bgY} logoKey={logoKey} />}
       </div>
     </div>
