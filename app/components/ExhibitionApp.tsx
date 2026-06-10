@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, type RefObject, type ReactNode } from 'react';
+import { useState, useRef, type RefObject, type ReactNode, type ChangeEvent } from 'react';
 import ExhibitionCanvas from './ExhibitionCanvas';
 import EmailBannerCanvas from './EmailBannerCanvas';
 import {
@@ -9,6 +9,7 @@ import {
   DEFAULT_DATA,
   COLOR_PRESETS,
   VENUE_OPTIONS,
+  LOGO_ENTITIES,
 } from '@/app/lib/presets';
 
 type OutputFormat = 'all' | 'insta' | 'popup' | 'email';
@@ -25,10 +26,19 @@ export default function ExhibitionApp() {
   const [hexInput, setHexInput] = useState(DEFAULT_DATA.color);
   const [generating, setGenerating] = useState(false);
   const [error, setError] = useState('');
+  const [customBgUrl, setCustomBgUrl] = useState<string | null>(null);
+  const [customBgName, setCustomBgName] = useState('');
+  const [bgX, setBgX] = useState(50);
+  const [bgY, setBgY] = useState(50);
+  const [emailBgY, setEmailBgY] = useState(50);
+  const [imagePosOpen, setImagePosOpen] = useState(false);
+  const [logoKey, setLogoKey] = useState('GENORAY');
 
   const instaRef = useRef<HTMLDivElement>(null);
   const popupRef = useRef<HTMLDivElement>(null);
   const emailRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const customBgUrlRef = useRef<string | null>(null);
 
   function applyPreset(key: string) {
     setSelectedPreset(key);
@@ -53,6 +63,26 @@ export default function ExhibitionApp() {
     if (/^#[0-9A-Fa-f]{6}$/.test(raw)) {
       setData(prev => ({ ...prev, color: raw }));
     }
+  }
+
+  function handleFileUpload(e: ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (customBgUrlRef.current) URL.revokeObjectURL(customBgUrlRef.current);
+    const url = URL.createObjectURL(file);
+    customBgUrlRef.current = url;
+    setCustomBgUrl(url);
+    setCustomBgName(file.name);
+    e.target.value = '';
+  }
+
+  function handleRemoveCustomBg() {
+    if (customBgUrlRef.current) {
+      URL.revokeObjectURL(customBgUrlRef.current);
+      customBgUrlRef.current = null;
+    }
+    setCustomBgUrl(null);
+    setCustomBgName('');
   }
 
   async function downloadCanvas(
@@ -101,9 +131,12 @@ export default function ExhibitionApp() {
   const popupPreviewH = Math.round(POPUP.h  * popupScale);
   const emailPreviewH = Math.round(EMAIL.h  * emailScale);
 
-  const showInsta = format === 'all' || format === 'insta';
-  const showPopup = format === 'all' || format === 'popup';
-  const showEmail = format === 'all' || format === 'email';
+  const showInsta  = format === 'all' || format === 'insta';
+  const showPopup  = format === 'all' || format === 'popup';
+  const showEmail  = format === 'all' || format === 'email';
+  const showBgXY   = showInsta || showPopup;
+
+  const bgUrl = customBgUrl ?? undefined;
 
   return (
     <div className="min-h-screen bg-gray-950 text-gray-100 flex flex-col">
@@ -152,12 +185,37 @@ export default function ExhibitionApp() {
             </div>
           </Section>
 
+          {/* Company logo */}
+          <Section label="Company Logo">
+            <div className="flex gap-1.5 flex-wrap">
+              {LOGO_ENTITIES.map(entity => (
+                <button
+                  key={entity}
+                  onClick={() => setLogoKey(entity)}
+                  className={`px-2.5 py-1 text-xs font-semibold border rounded transition-all ${
+                    logoKey === entity
+                      ? 'bg-blue-600 border-blue-600 text-white'
+                      : 'border-gray-700 text-gray-400 hover:border-gray-500 hover:text-gray-200'
+                  }`}
+                >
+                  {entity}
+                </button>
+              ))}
+            </div>
+            <p className="text-xs text-gray-600 mt-1.5">
+              {logoKey === 'GENORAY'
+                ? 'Insta/Popup: GENORAY_logo_symbol.svg · Email: GENORAY_logo.svg'
+                : `Insta/Popup: GENORAY_${logoKey}_logo_H.svg · Email: GENORAY_${logoKey}_logo_V.svg`}
+            </p>
+          </Section>
+
           {/* Background image */}
           <Section label="Background Image">
             <select
               value={data.venueKey}
               onChange={e => setField('venueKey', e.target.value)}
-              className="input"
+              className={`input${customBgUrl ? ' opacity-40' : ''}`}
+              disabled={!!customBgUrl}
             >
               {VENUE_OPTIONS.map(g => (
                 <optgroup key={g.group} label={g.group}>
@@ -167,7 +225,85 @@ export default function ExhibitionApp() {
                 </optgroup>
               ))}
             </select>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={handleFileUpload}
+            />
+            {customBgUrl ? (
+              <div className="flex items-center gap-2 mt-2">
+                <span className="text-xs text-gray-300 truncate flex-1 min-w-0">{customBgName}</span>
+                <button
+                  onClick={handleRemoveCustomBg}
+                  className="text-xs text-red-400 hover:text-red-300 px-2 py-1 border border-red-800 hover:border-red-600 rounded transition-colors shrink-0"
+                >
+                  Remove
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={() => fileInputRef.current?.click()}
+                className="mt-2 w-full py-1.5 text-xs text-gray-400 border border-dashed border-gray-700 hover:border-gray-500 hover:text-gray-200 rounded transition-colors"
+              >
+                Or upload custom image
+              </button>
+            )}
           </Section>
+
+          {/* Image position controls — collapsible */}
+          <div>
+            <button
+              onClick={() => setImagePosOpen(v => !v)}
+              className="flex items-center justify-between w-full text-xs font-semibold text-gray-400 uppercase tracking-wider hover:text-gray-200 transition-colors"
+            >
+              <span>Image Position</span>
+              <span
+                style={{
+                  display: 'inline-block',
+                  transform: imagePosOpen ? 'rotate(180deg)' : 'rotate(0deg)',
+                  transition: 'transform 0.2s ease',
+                }}
+              >
+                ▾
+              </span>
+            </button>
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateRows: imagePosOpen ? '1fr' : '0fr',
+                transition: 'grid-template-rows 0.2s ease',
+              }}
+            >
+              <div style={{ overflow: 'hidden' }}>
+                <div className="pt-2 space-y-2">
+                  {showBgXY && (
+                    <div className={showEmail ? 'mb-3' : ''}>
+                      {showEmail && (
+                        <p className="text-xs text-gray-500 mb-2">Instagram / Popup</p>
+                      )}
+                      <div className="space-y-2">
+                        <SliderRow label="Horizontal" value={bgX} onChange={setBgX} />
+                        <SliderRow label="Vertical"   value={bgY} onChange={setBgY} />
+                      </div>
+                    </div>
+                  )}
+                  {showBgXY && showEmail && (
+                    <div className="border-t border-gray-800 mb-3" />
+                  )}
+                  {showEmail && (
+                    <div>
+                      {showBgXY && (
+                        <p className="text-xs text-gray-500 mb-2">Email Banner</p>
+                      )}
+                      <SliderRow label="Vertical" value={emailBgY} onChange={setEmailBgY} />
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
 
           {/* Location */}
           <Section label="Location / Country">
@@ -344,6 +480,10 @@ export default function ExhibitionApp() {
                     previewW={PREVIEW_W}
                     previewH={instaPreviewH}
                     scale={instaScale}
+                    customBgUrl={bgUrl}
+                    bgX={bgX}
+                    bgY={bgY}
+                    logoKey={logoKey}
                   />
                 </PreviewBlock>
                 <PreviewBlock label="Popup — 900 × 900">
@@ -354,6 +494,10 @@ export default function ExhibitionApp() {
                     previewW={PREVIEW_W}
                     previewH={popupPreviewH}
                     scale={popupScale}
+                    customBgUrl={bgUrl}
+                    bgX={bgX}
+                    bgY={bgY}
+                    logoKey={logoKey}
                   />
                 </PreviewBlock>
               </div>
@@ -367,6 +511,9 @@ export default function ExhibitionApp() {
                   previewH={emailPreviewH}
                   scale={emailScale}
                   isEmail
+                  customBgUrl={bgUrl}
+                  emailBgY={emailBgY}
+                  logoKey={logoKey}
                 />
               </PreviewBlock>
             </div>
@@ -381,6 +528,10 @@ export default function ExhibitionApp() {
                     previewW={PREVIEW_W}
                     previewH={instaPreviewH}
                     scale={instaScale}
+                    customBgUrl={bgUrl}
+                    bgX={bgX}
+                    bgY={bgY}
+                    logoKey={logoKey}
                   />
                 </PreviewBlock>
               )}
@@ -393,6 +544,10 @@ export default function ExhibitionApp() {
                     previewW={PREVIEW_W}
                     previewH={popupPreviewH}
                     scale={popupScale}
+                    customBgUrl={bgUrl}
+                    bgX={bgX}
+                    bgY={bgY}
+                    logoKey={logoKey}
                   />
                 </PreviewBlock>
               )}
@@ -406,6 +561,9 @@ export default function ExhibitionApp() {
                     previewH={emailPreviewH}
                     scale={emailScale}
                     isEmail
+                    customBgUrl={bgUrl}
+                    emailBgY={emailBgY}
+                    logoKey={logoKey}
                   />
                 </PreviewBlock>
               )}
@@ -425,9 +583,9 @@ export default function ExhibitionApp() {
           zIndex: -100,
         }}
       >
-        <ExhibitionCanvas ref={instaRef} data={data} width={INSTA.w} height={INSTA.h} />
-        <ExhibitionCanvas ref={popupRef} data={data} width={POPUP.w} height={POPUP.h} />
-        <EmailBannerCanvas ref={emailRef} data={data} width={EMAIL.w} height={EMAIL.h} />
+        <ExhibitionCanvas ref={instaRef} data={data} width={INSTA.w} height={INSTA.h} customBgUrl={bgUrl} bgPositionX={bgX} bgPositionY={bgY} logoKey={logoKey} />
+        <ExhibitionCanvas ref={popupRef} data={data} width={POPUP.w} height={POPUP.h} customBgUrl={bgUrl} bgPositionX={bgX} bgPositionY={bgY} logoKey={logoKey} />
+        <EmailBannerCanvas ref={emailRef} data={data} width={EMAIL.w} height={EMAIL.h} customBgUrl={bgUrl} bgPositionY={emailBgY} logoKey={logoKey} />
       </div>
     </div>
   );
@@ -442,6 +600,31 @@ function Section({ label, children }: { label: string; children: ReactNode }) {
         {label}
       </label>
       {children}
+    </div>
+  );
+}
+
+function SliderRow({
+  label,
+  value,
+  onChange,
+}: {
+  label: string;
+  value: number;
+  onChange: (v: number) => void;
+}) {
+  return (
+    <div className="flex items-center gap-2">
+      <span className="text-xs text-gray-400 w-20 shrink-0">{label}</span>
+      <input
+        type="range"
+        min={0}
+        max={100}
+        value={value}
+        onChange={e => onChange(Number(e.target.value))}
+        className="flex-1 accent-blue-500"
+      />
+      <span className="text-xs font-mono text-gray-400 w-8 text-right shrink-0">{value}%</span>
     </div>
   );
 }
@@ -463,6 +646,11 @@ function ScaledPreview({
   previewH,
   scale,
   isEmail = false,
+  customBgUrl,
+  bgX = 50,
+  bgY = 50,
+  emailBgY = 50,
+  logoKey = 'GENORAY',
 }: {
   data: ExhibitionData;
   canvasW: number;
@@ -471,6 +659,11 @@ function ScaledPreview({
   previewH: number;
   scale: number;
   isEmail?: boolean;
+  customBgUrl?: string;
+  bgX?: number;
+  bgY?: number;
+  emailBgY?: number;
+  logoKey?: string;
 }) {
   return (
     <div
@@ -479,7 +672,8 @@ function ScaledPreview({
         height: previewH,
         position: 'relative',
         overflow: 'hidden',
-        borderRadius: 8,
+        borderRadius: 0,
+        border: '1px solid rgba(255,255,255,0.15)',
         boxShadow: '0 4px 32px rgba(0,0,0,0.7)',
         flexShrink: 0,
       }}
@@ -494,8 +688,8 @@ function ScaledPreview({
         }}
       >
         {isEmail
-          ? <EmailBannerCanvas data={data} width={canvasW} height={canvasH} />
-          : <ExhibitionCanvas  data={data} width={canvasW} height={canvasH} />}
+          ? <EmailBannerCanvas data={data} width={canvasW} height={canvasH} customBgUrl={customBgUrl} bgPositionY={emailBgY} logoKey={logoKey} />
+          : <ExhibitionCanvas  data={data} width={canvasW} height={canvasH} customBgUrl={customBgUrl} bgPositionX={bgX} bgPositionY={bgY} logoKey={logoKey} />}
       </div>
     </div>
   );

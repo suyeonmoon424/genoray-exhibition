@@ -1,3 +1,16 @@
+export const LOGO_ENTITIES = ['GENORAY', 'GAI', 'GEG', 'GJ', 'GK', 'GS', 'GT'] as const;
+export type LogoEntity = typeof LOGO_ENTITIES[number];
+
+export function getCanvasLogoSrc(entity: string): string {
+  if (entity === 'GENORAY') return '/logos/GENORAY_logo_symbol.svg';
+  return `/logos/GENORAY_${entity}_logo_H.svg`;
+}
+
+export function getEmailLogoSrc(entity: string): string {
+  if (entity === 'GENORAY') return '/logos/GENORAY_logo.svg';
+  return `/logos/GENORAY_${entity}_logo_V.svg`;
+}
+
 export type ExhibitionData = {
   exhibitionName: string;
   year: string;

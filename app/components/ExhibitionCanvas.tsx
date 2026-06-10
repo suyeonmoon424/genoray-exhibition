@@ -1,24 +1,28 @@
 'use client';
 
 import { forwardRef } from 'react';
-import { ExhibitionData, VENUE_BG } from '@/app/lib/presets';
+import { ExhibitionData, VENUE_BG, getCanvasLogoSrc } from '@/app/lib/presets';
 
 type Props = {
   data: ExhibitionData;
   width: number;
   height: number;
+  customBgUrl?: string;
+  bgPositionX?: number;
+  bgPositionY?: number;
+  logoKey?: string;
 };
 
 const ExhibitionCanvas = forwardRef<HTMLDivElement, Props>(function ExhibitionCanvas(
-  { data, width, height },
+  { data, width, height, customBgUrl, bgPositionX = 50, bgPositionY = 50, logoKey = 'GENORAY' },
   ref
 ) {
   // Scale factor: all design values are authored at 1080 px wide
   const s = width / 1080;
   const r = (base: number) => Math.round(base * s);
 
-  // Background: fall back to COEX so preview is never blank
-  const bgSrc = VENUE_BG[data.venueKey] ?? VENUE_BG['kr_seoul_coex_01'];
+  // Background: custom upload takes priority over dropdown selection
+  const bgSrc = customBgUrl ?? VENUE_BG[data.venueKey] ?? VENUE_BG['kr_seoul_coex_01'];
 
   // Year comes directly from its own field now
   const year = data.year;
@@ -56,7 +60,7 @@ const ExhibitionCanvas = forwardRef<HTMLDivElement, Props>(function ExhibitionCa
           width: '100%',
           height: '100%',
           objectFit: 'cover',
-          objectPosition: 'center right',
+          objectPosition: `${bgPositionX}% ${bgPositionY}%`,
           display: 'block',
           pointerEvents: 'none',
         }}
@@ -195,6 +199,9 @@ const ExhibitionCanvas = forwardRef<HTMLDivElement, Props>(function ExhibitionCa
               color: 'rgba(255,255,255,0.80)',
               lineHeight: 1.3,
               marginBottom: `${r(10)}px`,
+              maxWidth: `${r(648)}px`,
+              whiteSpace: 'normal',
+              wordBreak: 'break-word',
             }}
           >
             {data.venue || 'Venue Name'}
@@ -317,14 +324,16 @@ const ExhibitionCanvas = forwardRef<HTMLDivElement, Props>(function ExhibitionCa
           {/* GENORAY logo */}
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src="/logo.png"
-            alt="GENORAY"
+            src={getCanvasLogoSrc(logoKey)}
+            alt={logoKey}
             style={{
               height: `${r(110)}px`,
               maxWidth: `${r(340)}px`,
               objectFit: 'contain',
               objectPosition: 'right center',
               display: 'block',
+              filter: 'brightness(0) invert(1)',
+              opacity: 0.6,
             }}
           />
         </div>

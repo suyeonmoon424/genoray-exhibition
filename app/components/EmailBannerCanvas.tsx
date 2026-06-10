@@ -1,22 +1,26 @@
 'use client';
 
 import { forwardRef, useState, useEffect, useRef } from 'react';
-import { ExhibitionData, VENUE_BG } from '@/app/lib/presets';
+import { ExhibitionData, VENUE_BG, getEmailLogoSrc } from '@/app/lib/presets';
 
 type Props = {
   data: ExhibitionData;
   width: number;
   height: number;
+  customBgUrl?: string;
+  bgPositionY?: number;
+  logoKey?: string;
 };
 
 const EmailBannerCanvas = forwardRef<HTMLDivElement, Props>(function EmailBannerCanvas(
-  { data, width, height },
+  { data, width, height, customBgUrl, bgPositionY = 50, logoKey = 'GENORAY' },
   ref
 ) {
   const s = width / 700;
   const r = (base: number) => Math.round(base * s);
 
-  const bgSrc = VENUE_BG[data.venueKey] ?? VENUE_BG['kr_seoul_coex_01'];
+  // Background: custom upload takes priority over dropdown selection
+  const bgSrc = customBgUrl ?? VENUE_BG[data.venueKey] ?? VENUE_BG['kr_seoul_coex_01'];
 
   const rightW = r(200);
   const leftW  = Math.round(width * 0.35);
@@ -83,13 +87,15 @@ const EmailBannerCanvas = forwardRef<HTMLDivElement, Props>(function EmailBanner
         <div>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src="/logo_w.png"
-            alt="GENORAY"
+            src={getEmailLogoSrc(logoKey)}
+            alt={logoKey}
             style={{
               height: `${r(26)}px`,
               objectFit: 'contain',
               objectPosition: 'left center',
               display: 'block',
+              filter: 'brightness(0) invert(1)',
+              opacity: 1,
             }}
           />
           <div style={{
@@ -173,7 +179,7 @@ const EmailBannerCanvas = forwardRef<HTMLDivElement, Props>(function EmailBanner
             width: '100%',
             height: '100%',
             objectFit: 'cover',
-            objectPosition: 'center',
+            objectPosition: `center ${bgPositionY}%`,
             display: 'block',
             pointerEvents: 'none',
           }}
