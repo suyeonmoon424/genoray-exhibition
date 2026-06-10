@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, type RefObject, type ReactNode, type ChangeEvent } from 'react';
+import { useState, useRef, useEffect, type RefObject, type ReactNode, type ChangeEvent } from 'react';
 import ExhibitionCanvas from './ExhibitionCanvas';
 import EmailBannerCanvas from './EmailBannerCanvas';
 import {
@@ -40,6 +40,26 @@ export default function ExhibitionApp() {
   const emailRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const customBgUrlRef = useRef<string | null>(null);
+  const mainRef = useRef<HTMLDivElement>(null);
+  const [previewW, setPreviewW] = useState(PREVIEW_W);
+
+  useEffect(() => {
+    const el = mainRef.current;
+    if (!el) return;
+    const update = () => {
+      // Horizontal: two previews + gap-6 (24px) fit inside main (p-6 = 48px padding)
+      const fromW = Math.floor((el.clientWidth - 48 - 24) / 2);
+      // Vertical: viewport minus header (~56px) + main padding (48px) +
+      //           email banner (140px) + three gap-6 rows (72px) = 316px overhead
+      const fromH = Math.floor((window.innerHeight - 316) * (INSTA.w / INSTA.h));
+      setPreviewW(Math.max(300, Math.min(fromW, fromH)));
+    };
+    update();
+    const obs = new ResizeObserver(update);
+    obs.observe(el);
+    window.addEventListener('resize', update);
+    return () => { obs.disconnect(); window.removeEventListener('resize', update); };
+  }, []);
 
   function applyPreset(key: string) {
     setSelectedPreset(key);
@@ -125,12 +145,10 @@ export default function ExhibitionApp() {
     }
   }
 
-  const instaScale    = PREVIEW_W / INSTA.w;
-  const popupScale    = PREVIEW_W / POPUP.w;
-  const emailScale    = PREVIEW_W / EMAIL.w;
-  const instaPreviewH = Math.round(INSTA.h  * instaScale);
-  const popupPreviewH = Math.round(POPUP.h  * popupScale);
-  const emailPreviewH = Math.round(EMAIL.h  * emailScale);
+  const instaScale    = previewW / INSTA.w;
+  const popupScale    = previewW / POPUP.w;
+  const instaPreviewH = Math.round(INSTA.h * instaScale);
+  const popupPreviewH = Math.round(POPUP.h * popupScale);
 
   const showInsta  = format === 'all' || format === 'insta';
   const showPopup  = format === 'all' || format === 'popup';
@@ -142,16 +160,49 @@ export default function ExhibitionApp() {
   return (
     <div className="min-h-screen bg-gray-950 text-gray-100 flex flex-col">
       {/* Header */}
-      <header className="bg-gray-900 border-b border-gray-800 px-6 py-4 flex items-center gap-3 shrink-0">
-        <div className="w-2 h-6 rounded-sm bg-blue-500" />
-        <h1 className="text-lg font-bold tracking-tight text-white">
-          GENORAY Exhibition Image Generator
-        </h1>
+      <header className="bg-gray-900 border-b border-gray-800 px-6 py-3 flex items-center justify-between shrink-0">
+        <div className="flex items-center gap-3">
+          <div className="w-2 h-6 rounded-sm bg-blue-500" />
+          <h1 className="text-lg font-bold tracking-tight text-white">
+            GENORAY Exhibition Image Generator
+          </h1>
+        </div>
+        <div className="flex items-center gap-3">
+          <div className="flex gap-1.5">
+            {(['all', 'insta', 'popup', 'email'] as OutputFormat[]).map(f => (
+              <button
+                key={f}
+                onClick={() => setFormat(f)}
+                className={`px-3 py-1.5 rounded text-xs font-semibold border transition-all ${
+                  format === f
+                    ? 'bg-blue-600 border-blue-600 text-white'
+                    : 'border-gray-700 text-gray-400 hover:border-gray-500 hover:text-gray-200'
+                }`}
+              >
+                {f === 'all' ? 'All' : f === 'insta' ? 'Insta' : f === 'popup' ? 'Popup' : 'Email'}
+              </button>
+            ))}
+          </div>
+          <button
+            onClick={handleGenerate}
+            disabled={generating}
+            className="px-4 py-1.5 rounded bg-blue-600 hover:bg-blue-500 disabled:bg-gray-700 disabled:cursor-not-allowed text-white font-bold text-xs transition-colors flex items-center gap-1.5"
+          >
+            {generating ? (
+              <>
+                <span className="inline-block w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                Generating…
+              </>
+            ) : (
+              '⬇ Download'
+            )}
+          </button>
+        </div>
       </header>
 
       <div className="flex flex-1 overflow-hidden">
         {/* ── Left panel: Form ── */}
-        <aside className="w-[400px] shrink-0 border-r border-gray-800 overflow-y-auto p-5 space-y-4">
+        <aside className="w-[400px] shrink-0 border-r border-gray-800 overflow-y-auto p-3 space-y-2.5">
 
           {/* Preset selector */}
           <Section label="Exhibition Preset">
@@ -203,11 +254,6 @@ export default function ExhibitionApp() {
                 </button>
               ))}
             </div>
-            <p className="text-xs text-gray-600 mt-1.5">
-              {logoKey === 'GENORAY'
-                ? 'Insta/Popup: GENORAY_logo_symbol.svg · Email: GENORAY_logo.svg'
-                : `Insta/Popup: GENORAY_${logoKey}_logo_H.svg · Email: GENORAY_${logoKey}_logo_V.svg`}
-            </p>
           </Section>
 
           {/* Background image */}
@@ -278,7 +324,7 @@ export default function ExhibitionApp() {
               }}
             >
               <div style={{ overflow: 'hidden' }}>
-                <div className="pt-2 space-y-2">
+                <div className="pt-1.5 space-y-2">
                   {showBgXY && (
                     <div className={showEmail ? 'mb-3' : ''}>
                       {showEmail && (
@@ -361,25 +407,21 @@ export default function ExhibitionApp() {
 
           {/* Booth color */}
           <Section label="Booth Number Color">
-            <div className="flex gap-2 mb-2 flex-wrap">
+            <div className="flex gap-1.5 mb-1.5 flex-wrap">
               {COLOR_PRESETS.map(cp => {
                 const active = data.color.toUpperCase() === cp.value.toUpperCase();
                 return (
                   <button
                     key={cp.value}
                     onClick={() => setColor(cp.value)}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-bold border transition-all ${
+                    title={cp.label}
+                    className={`w-6 h-6 rounded transition-all shrink-0 ${
                       active
-                        ? 'border-white ring-2 ring-white/30 scale-105'
-                        : 'border-gray-600 hover:border-gray-400'
+                        ? 'ring-2 ring-white ring-offset-1 ring-offset-gray-900 scale-110'
+                        : 'hover:scale-110'
                     }`}
-                    style={{
-                      backgroundColor: cp.value,
-                      color: cp.value === '#FFFFFF' ? '#111' : '#111',
-                    }}
-                  >
-                    {cp.label}
-                  </button>
+                    style={{ backgroundColor: cp.value }}
+                  />
                 );
               })}
             </div>
@@ -404,74 +446,16 @@ export default function ExhibitionApp() {
             </div>
           </Section>
 
-          {/* Tagline */}
-          <Section label="Tagline (optional)">
-            <input
-              className="input"
-              value={data.tag}
-              onChange={e => setField('tag', e.target.value)}
-              placeholder="e.g. Come and discover Genoray's…"
-            />
-          </Section>
-
-          {/* Output format */}
-          <Section label="Output Format">
-            <div className="flex gap-2">
-              {(['all', 'insta', 'popup', 'email'] as OutputFormat[]).map(f => (
-                <button
-                  key={f}
-                  onClick={() => setFormat(f)}
-                  className={`flex-1 py-2 rounded-lg text-xs font-semibold border transition-all ${
-                    format === f
-                      ? 'bg-blue-600 border-blue-600 text-white'
-                      : 'border-gray-700 text-gray-400 hover:border-gray-500 hover:text-gray-200'
-                  }`}
-                >
-                  {f === 'all' ? 'All' : f === 'insta' ? 'Insta' : f === 'popup' ? 'Popup' : 'Email'}
-                </button>
-              ))}
-            </div>
-            <p className="text-xs text-gray-500 mt-1">
-              {format === 'all'
-                ? 'Exports: 1080×1350 + 900×900 + 700×140 PNG'
-                : format === 'insta'
-                ? 'Exports: 1080×1350 PNG'
-                : format === 'popup'
-                ? 'Exports: 900×900 PNG'
-                : 'Exports: 700×140 PNG (Email Banner)'}
-            </p>
-          </Section>
-
           {/* Error */}
           {error && (
             <p className="text-xs text-red-400 bg-red-950 border border-red-800 rounded-lg px-3 py-2">
               {error}
             </p>
           )}
-
-          {/* Generate button */}
-          <button
-            onClick={handleGenerate}
-            disabled={generating}
-            className="w-full py-3 rounded-xl bg-blue-600 hover:bg-blue-500 disabled:bg-gray-700 disabled:cursor-not-allowed text-white font-bold text-sm transition-colors flex items-center justify-center gap-2"
-          >
-            {generating ? (
-              <>
-                <span className="inline-block w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                Generating…
-              </>
-            ) : (
-              '⬇ Generate & Download'
-            )}
-          </button>
-
-          <p className="text-xs text-gray-600 text-center pb-2">
-            Background images must be placed in <code className="text-gray-500">/public/bg/</code>
-          </p>
         </aside>
 
         {/* ── Right panel: Previews ── */}
-        <main className="flex-1 overflow-auto p-6 bg-gray-950">
+        <main ref={mainRef} className="flex-1 overflow-auto p-6 bg-gray-950">
           {format === 'all' ? (
             <div className="flex flex-col gap-6 items-start">
               {/* Row 1: Insta + Popup side by side */}
@@ -481,7 +465,7 @@ export default function ExhibitionApp() {
                     data={data}
                     canvasW={INSTA.w}
                     canvasH={INSTA.h}
-                    previewW={PREVIEW_W}
+                    previewW={previewW}
                     previewH={instaPreviewH}
                     scale={instaScale}
                     customBgUrl={bgUrl}
@@ -495,7 +479,7 @@ export default function ExhibitionApp() {
                     data={data}
                     canvasW={POPUP.w}
                     canvasH={POPUP.h}
-                    previewW={PREVIEW_W}
+                    previewW={previewW}
                     previewH={popupPreviewH}
                     scale={popupScale}
                     customBgUrl={bgUrl}
@@ -511,9 +495,9 @@ export default function ExhibitionApp() {
                   data={data}
                   canvasW={EMAIL.w}
                   canvasH={EMAIL.h}
-                  previewW={PREVIEW_W}
-                  previewH={emailPreviewH}
-                  scale={emailScale}
+                  previewW={EMAIL.w}
+                  previewH={EMAIL.h}
+                  scale={1}
                   isEmail
                   customBgUrl={bgUrl}
                   emailBgX={emailBgX}
@@ -530,7 +514,7 @@ export default function ExhibitionApp() {
                     data={data}
                     canvasW={INSTA.w}
                     canvasH={INSTA.h}
-                    previewW={PREVIEW_W}
+                    previewW={previewW}
                     previewH={instaPreviewH}
                     scale={instaScale}
                     customBgUrl={bgUrl}
@@ -546,7 +530,7 @@ export default function ExhibitionApp() {
                     data={data}
                     canvasW={POPUP.w}
                     canvasH={POPUP.h}
-                    previewW={PREVIEW_W}
+                    previewW={previewW}
                     previewH={popupPreviewH}
                     scale={popupScale}
                     customBgUrl={bgUrl}
@@ -562,7 +546,7 @@ export default function ExhibitionApp() {
                     data={data}
                     canvasW={EMAIL.w}
                     canvasH={EMAIL.h}
-                    previewW={PREVIEW_W}
+                    previewW={previewW}
                     previewH={emailPreviewH}
                     scale={emailScale}
                     isEmail
@@ -602,7 +586,7 @@ export default function ExhibitionApp() {
 function Section({ label, children }: { label: string; children: ReactNode }) {
   return (
     <div>
-      <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1.5">
+      <label className="block text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1">
         {label}
       </label>
       {children}

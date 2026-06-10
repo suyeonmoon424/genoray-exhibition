@@ -221,22 +221,6 @@ const ExhibitionCanvas = forwardRef<HTMLDivElement, Props>(function ExhibitionCa
             {data.date || 'Date'}
           </div>
 
-          {/* Tagline (optional) */}
-          {data.tag && (
-            <div
-              style={{
-                marginTop: `${r(20)}px`,
-                fontFamily: "'Pretendard', Arial, sans-serif",
-                fontSize: `${r(26)}px`,
-                fontWeight: 400,
-                fontStyle: 'italic',
-                color: 'rgba(255,255,255,0.72)',
-                lineHeight: 1.45,
-              }}
-            >
-              {data.tag}
-            </div>
-          )}
         </div>
 
         {/* ── BOTTOM: booth card + logo ── */}

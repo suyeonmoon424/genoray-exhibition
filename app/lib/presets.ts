@@ -21,7 +21,6 @@ export type ExhibitionData = {
   booth: string;
   color: string;
   venueKey: string;
-  tag: string;
 };
 
 export const VENUE_BG: Record<string, string> = {
@@ -204,7 +203,7 @@ export const PRESETS: Record<string, ExhibitionData> = {
     booth: '',
     color: '#00BFFF',
     venueKey: 'kr_seoul_coex_01',
-    tag: '',
+
   },
   AEEDC: {
     exhibitionName: 'AEEDC',
@@ -216,7 +215,7 @@ export const PRESETS: Record<string, ExhibitionData> = {
     booth: '',
     color: '#FFC107',
     venueKey: 'uae_dubai_dwtc_01',
-    tag: '',
+
   },
   IDS: {
     exhibitionName: 'IDS',
@@ -228,7 +227,7 @@ export const PRESETS: Record<string, ExhibitionData> = {
     booth: '',
     color: '#FFC107',
     venueKey: 'de_cologne_01',
-    tag: '',
+
   },
   ECR: {
     exhibitionName: 'ECR',
@@ -240,7 +239,7 @@ export const PRESETS: Record<string, ExhibitionData> = {
     booth: '',
     color: '#FFC107',
     venueKey: 'at_vienna_acv_01',
-    tag: '',
+
   },
   KIMES: {
     exhibitionName: 'KIMES',
@@ -252,7 +251,7 @@ export const PRESETS: Record<string, ExhibitionData> = {
     booth: '',
     color: '#00BFFF',
     venueKey: 'kr_seoul_coex_01',
-    tag: '',
+
   },
   ITEM: {
     exhibitionName: 'ITEM',
@@ -264,7 +263,7 @@ export const PRESETS: Record<string, ExhibitionData> = {
     booth: '',
     color: '#00BFFF',
     venueKey: 'jp_yokohama_pacifico_01',
-    tag: '',
+
   },
   ExpoMed: {
     exhibitionName: 'ExpoMed Eurasia',
@@ -276,7 +275,7 @@ export const PRESETS: Record<string, ExhibitionData> = {
     booth: '',
     color: '#00BFFF',
     venueKey: 'tr_istanbul_01',
-    tag: '',
+
   },
   CDA: {
     exhibitionName: 'CDA',
@@ -288,7 +287,7 @@ export const PRESETS: Record<string, ExhibitionData> = {
     booth: '',
     color: '#FFC107',
     venueKey: 'us_anaheim_acc_01',
-    tag: '',
+
   },
   SIDEX: {
     exhibitionName: 'SIDEX',
@@ -300,7 +299,7 @@ export const PRESETS: Record<string, ExhibitionData> = {
     booth: 'D125~128',
     color: '#00BFFF',
     venueKey: 'kr_seoul_coex_01',
-    tag: '',
+
   },
   GAMEX: {
     exhibitionName: 'GAMEX',
@@ -312,7 +311,7 @@ export const PRESETS: Record<string, ExhibitionData> = {
     booth: '',
     color: '#00BFFF',
     venueKey: 'kr_seoul_coex_01',
-    tag: '',
+
   },
   MEDICA: {
     exhibitionName: 'MEDICA',
@@ -324,7 +323,7 @@ export const PRESETS: Record<string, ExhibitionData> = {
     booth: '',
     color: '#FFC107',
     venueKey: 'de_dusseldorf_messe_01',
-    tag: '',
+
   },
   RSNA: {
     exhibitionName: 'RSNA',
@@ -336,7 +335,7 @@ export const PRESETS: Record<string, ExhibitionData> = {
     booth: '',
     color: '#FFC107',
     venueKey: 'us_chicago_mccormick_01',
-    tag: '',
+
   },
   KDX: {
     exhibitionName: 'KDX',
@@ -348,7 +347,7 @@ export const PRESETS: Record<string, ExhibitionData> = {
     booth: '',
     color: '#00BFFF',
     venueKey: 'kr_incheon_songdo-convensia_01',
-    tag: '',
+
   },
   WHX: {
     exhibitionName: 'WHX Dubai',
@@ -360,7 +359,7 @@ export const PRESETS: Record<string, ExhibitionData> = {
     booth: '',
     color: '#FFC107',
     venueKey: 'uae_dubai_dec_01',
-    tag: '',
+
   },
   CDS: {
     exhibitionName: 'CDS Midwinter',
@@ -372,7 +371,7 @@ export const PRESETS: Record<string, ExhibitionData> = {
     booth: '',
     color: '#FFC107',
     venueKey: 'us_chicago_mccormick_01',
-    tag: '',
+
   },
 };
 
