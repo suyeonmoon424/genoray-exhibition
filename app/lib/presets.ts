@@ -385,5 +385,4 @@ export const DEFAULT_DATA: ExhibitionData = {
   booth: '',
   color: '#FFC107',
   venueKey: 'kr_seoul_coex_01',
-  tag: '',
 };

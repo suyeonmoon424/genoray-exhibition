@@ -147,8 +147,10 @@ export default function ExhibitionApp() {
 
   const instaScale    = previewW / INSTA.w;
   const popupScale    = previewW / POPUP.w;
+  const emailScale    = previewW / EMAIL.w;
   const instaPreviewH = Math.round(INSTA.h * instaScale);
   const popupPreviewH = Math.round(POPUP.h * popupScale);
+  const emailPreviewH = Math.round(EMAIL.h * emailScale);
 
   const showInsta  = format === 'all' || format === 'insta';
   const showPopup  = format === 'all' || format === 'popup';
