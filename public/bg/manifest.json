@@ -27,6 +27,9 @@
   "de_berlin": [
     { "file": "bg_de_berlin.png", "label": "베를린" }
   ],
+  "de_berlin_citycube": [
+    { "file": "bg_de_berlin_citycube_01.png", "label": "CityCube Berlin" }
+  ],
   "de_cologne": [
     { "file": "bg_de_cologne_01.png", "label": "쾰른 1" },
     { "file": "bg_de_cologne_02.png", "label": "쾰른 2" }

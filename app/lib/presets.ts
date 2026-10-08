@@ -45,6 +45,8 @@ export const VENUE_BG: Record<string, string> = {
   cn_shanghai_02: '/bg/bg_cn_shanghai_02.png',
   // Germany — Berlin
   de_berlin: '/bg/bg_de_berlin.png',
+  // Germany — Berlin CityCube
+  de_berlin_citycube_01: '/bg/bg_de_berlin_citycube_01.png',
   // Germany — Cologne
   de_cologne_01: '/bg/bg_de_cologne_01.png',
   de_cologne_02: '/bg/bg_de_cologne_02.png',
@@ -130,6 +132,9 @@ export const VENUE_OPTIONS: VenueGroup[] = [
   ]},
   { group: 'DE — Berlin', items: [
     { label: 'Berlin', value: 'de_berlin' },
+  ]},
+  { group: 'DE — Berlin CityCube', items: [
+    { label: 'CityCube Berlin', value: 'de_berlin_citycube_01' },
   ]},
   { group: 'DE — Cologne', items: [
     { label: 'Cologne 1', value: 'de_cologne_01' },
@@ -371,6 +376,18 @@ export const PRESETS: Record<string, ExhibitionData> = {
     booth: '',
     color: '#FFC107',
     venueKey: 'us_chicago_mccormick_01',
+
+  },
+  DKOU: {
+    exhibitionName: 'DKOU',
+    year: '2026',
+    location: 'Berlin / Germany',
+    venue: 'CityCube Berlin',
+    date: '',
+    hall: '',
+    booth: '',
+    color: '#FFC107',
+    venueKey: 'de_berlin_citycube_01',
 
   },
 };
